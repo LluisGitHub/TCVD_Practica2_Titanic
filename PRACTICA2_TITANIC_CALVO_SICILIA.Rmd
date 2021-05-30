@@ -4,17 +4,17 @@ author: "Autor: Lluís Calvo i Aleix Sicília"
 date: "13-05-2021"
 output:
   word_document: default
+  pdf_document:
+    highlight: zenburn
+    toc: yes
   html_document: 
     highlight: default
     number_sections: yes
     theme: cosmo
     toc: yes
-    toc_depth: 2
+    toc_depth: 3
     includes:
       in_header: PRA2-header.html
-  pdf_document:
-    highlight: zenburn
-    toc: yes
 ---
 
 ******
@@ -259,6 +259,36 @@ Cal tenir en compte que la variable Age no tindrà sentit si usem segment d'edat
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Eliminarem la variable edat
 df_titanic <- df_titanic[ -c(4) ]
+```
+
+Realitzarem un analisi exploratori de les dades mitjançant histogrames de freqüència dels següents atributs
+
+* Pclass: Classe en que viatja el passatger
+* Sex: Sexe del passatger
+* segment_Edat: Segment d'edat del passatger
+* SibSp: Geramnes/Esposses del passatger
+* Parch: Pares/Fills del passatger
+* Fare: Import bitllet
+* Embarked: Port d'embarcament
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+require(gridExtra)
+
+p1 <- ggplot(df_titanic, aes(x=factor(Pclass), fill = Survived)) + geom_bar(position = "fill") + xlab("Classe Passatger") + ylab("Proporció")
+
+p2 <- ggplot(df_titanic, aes(x=factor(Sex), fill = Survived)) + geom_bar(position = "fill") + xlab("Sexe Passatger") + ylab("Proporció")
+
+p3 <- ggplot(df_titanic, aes(x=factor(segment_edat), fill = Survived)) + geom_bar(position = "fill") + xlab("Edat Passatger") + ylab("Proporció")
+
+p4 <- ggplot(df_titanic, aes(x=factor(SibSp), fill = Survived)) + geom_bar(position = "fill") + xlab("Germanes/Esposes Passatger") + ylab("Proporció")
+
+p5 <- ggplot(df_titanic, aes(x=factor(Parch), fill = Survived)) + geom_bar(position = "fill") + xlab("Pares/Fills Passatger") + ylab("Proporció")
+
+p6 <- ggplot(df_titanic, aes(x=Fare, fill = Survived)) + geom_histogram(bins=10, position = "fill") + xlab("Import bitllet") + ylab("Proporció")
+
+p7 <- ggplot(df_titanic, aes(x=factor(Embarked), fill = Survived)) + geom_bar(position = "fill") + xlab("Port Embarcament") + ylab("Proporció")
+
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, nrow = 4)
 ```
 
 ### Comprovació de la normalitat i homogeneïtat de la variància
