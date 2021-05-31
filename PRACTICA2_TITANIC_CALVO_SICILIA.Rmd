@@ -4,17 +4,17 @@ author: "Autor: Lluís Calvo i Aleix Sicília"
 date: "13-05-2021"
 output:
   word_document: default
-  pdf_document:
-    highlight: zenburn
-    toc: yes
   html_document: 
     highlight: default
     number_sections: yes
     theme: cosmo
     toc: yes
-    toc_depth: 3
+    toc_depth: 4
     includes:
       in_header: PRA2-header.html
+  pdf_document:
+    highlight: zenburn
+    toc: yes
 ---
 
 ******
@@ -47,11 +47,11 @@ Primerament, instal·lem i carreguem les llibreries ggplot2 i dplry
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Llibreries utilitzades
-packages <- c('ggplot2', 'dplyr', 'mlbench', 'MASS', 'pROC', 'randomForest', 'tidyverse', 'lsr', 'psych', 'ggthemes', 'tinytex')
+packages <- c('ggplot2', 'dplyr', 'mlbench', 'MASS', 'pROC', 'randomForest', 'tidyverse', 'lsr', 'psych', 'ggthemes', 'tinytex', 'qqPlot')
 # Instal·lació packets encara no instal·lats.
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
+  install.packages(packages[!installed_packages], repos = "http://cran.us.r-project.org")
 }
 library('ggplot2')
 library('dplyr')
@@ -64,6 +64,7 @@ library('lsr')
 library('psych')
 library('ggthemes') 
 library('tinytex') 
+
 ```
 
 Carreguem el fitxer de dades de train i test. Ens assegurarem de tenir mostres úniques.
@@ -291,25 +292,44 @@ p7 <- ggplot(df_titanic, aes(x=factor(Embarked), fill = Survived)) + geom_bar(po
 grid.arrange(p1, p2, p3, p4, p5, p6, p7, nrow = 4)
 ```
 
+D'un analisi visual, es pot apreciar que per certs atributs, la proporció de supervivent/no supervivents es molt diferent:
+
+* Classe: Es pot apreciar que hi ha haver més supervivents dins de les classes més elevades.
+* Sexe: Es pot apreciar que entre les dones la supervivència va ser al volant del 75% i en canvi entre els homes va ser al voltant del 25%
+* Import bitllet: Sembla que com més car era el bitllet, més possibilitats hi havia de sobrevieure. Deduïm (Encara que caldria contrastar-ho) que els que no han pagat billet, son els membres de la tripulació, i en aquest sector es pot veure que la supervivència es molt inferiror a la resta.
+* Port embarcament: Sembla que que les persones que no es coneix el port d'embarcament, tenien moltes ménys possibilitats de sobreviure, potser aquestes persones son part de la tripulació. S'hauria d'estudiar en un analisi més detallat.
+
+
 ### Comprovació de la normalitat i homogeneïtat de la variància
 
-En primer lloc, hem de veure la normalitat del model. Això ho podem fer mitjançant Kolmogorov-Smirnov en la variable "Fare".
+#### Comprovació de la normalitat
+
+En primer lloc, hem de veure la normalitat del model. Això ho podem fer mitjançant dos tests, el de Kolmogorov-Smirnov i el de Shapiro-Wilk sobre la variable "Fare".
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 ks.test(df_titanic$Fare, pnorm, mean(df_titanic$Fare), sd(df_titanic$Fare))
 shapiro.test(df_titanic$Fare)
 ```
+En ambdues proves, el p-valor es més petit que el nivell de significació, que gereralment es pren com a alpha = 0,05. En ambdos casos el valor es molt més petit, per tant, assumirem que la mostra no es una distribució normal.
 
-Tant pel test de Kolmogorov-Smirnov com per Shapiro no es compleix la normalitat en Fare. 
 
-* MOD    levene test es per distribucions normals, per distribucions no normals utilitzem Fligner-Killeen
-
-A continuació, es veurà la variància dels errors a partir d'un anàlisis de l’homoscedasticitat. Com en el punt anterior hem observat que les dades no segueixen una distribució normal, utilitzarem el test Fligner-Killeen
+Realitarem un qqplot (Quantile-Quantile plot) per veure la correlació entre la nostra distribució i una distribució normal, per confirmar visualment el resultat anteriroment, és a dir, que la distribució no és normal.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-# Aquí es pot observar diferents mètodes per tal d'observar l'homoscdasticitat. Tant es pot calcular el test de Levene com el de Barlett.
-# levene.test(Fare ~ Survived, data = df_titanic)
-# leveneTest(Fare ~ Survived, data = df_titanic)
+
+qqnorm(df_titanic$Fare, pch = 1, frame = FALSE)
+qqline(df_titanic$Fare, col = "steelblue", lwd = 2)
+
+```
+
+Es pot apreciar clarament la diferència de la distribució entre la nostra mostra i la d'una mostra normal.
+
+
+#### Comprovació de la homogeneïtat de la variància
+
+A continuació, es veurà la variància dels errors a partir d'un anàlisis de l’homoscedasticitat. Com en el punt anterior hem observat que les dades no segueixen una distribució normal, utilitzarem el test Fligner-Killeen, ja que el tests de Levene únicament per mostres amb una distribució noraml
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 res <- bartlett.test(Fare ~ Survived, data = df_titanic)
 res
 ```
