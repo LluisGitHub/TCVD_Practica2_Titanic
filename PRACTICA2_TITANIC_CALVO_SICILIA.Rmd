@@ -4,6 +4,9 @@ author: "Autor: Lluís Calvo i Aleix Sicília"
 date: "13-05-2021"
 output:
   word_document: default
+  pdf_document:
+    highlight: zenburn
+    toc: yes
   html_document: 
     highlight: default
     number_sections: yes
@@ -12,9 +15,6 @@ output:
     toc_depth: 4
     includes:
       in_header: PRA2-header.html
-  pdf_document:
-    highlight: zenburn
-    toc: yes
 ---
 
 ******
@@ -47,7 +47,7 @@ Primerament, instal·lem i carreguem les llibreries ggplot2 i dplry
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Llibreries utilitzades
-packages <- c('ggplot2', 'dplyr', 'mlbench', 'MASS', 'pROC', 'randomForest', 'tidyverse', 'lsr', 'psych', 'ggthemes', 'tinytex', 'qqPlot')
+packages <- c('ggplot2', 'dplyr', 'mlbench', 'MASS', 'pROC', 'randomForest', 'tidyverse', 'lsr', 'psych', 'ggthemes', 'tinytex', 'qqPlot', 'sjPlot')
 # Instal·lació packets encara no instal·lats.
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
@@ -64,6 +64,7 @@ library('lsr')
 library('psych')
 library('ggthemes') 
 library('tinytex') 
+library('sjPlot') 
 
 ```
 
@@ -378,6 +379,8 @@ Anem a analitzar la relació entre el preu pagat pel bitllet i la supervivència
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 logit_1 <- glm(Survived~df_titanic$Fare, family = binomial,data = df_titanic)
 summary(logit_1)
+
+plot_model(logit_1)
 ```
 
 Podem observar que es tracta d'una regressió lineal binària, ja que la variable de decisió és binària (sobreviu o no). Per tant, podem observar com el valor de Z>3 es tracta d'una variable a tenir en compte. No obstant, només estem definint el model amb una variable, pel qual hem d'incloure, més variables.
@@ -386,6 +389,8 @@ Podem observar que es tracta d'una regressió lineal binària, ja que la variabl
 logit_1 <- glm(Survived~df_titanic$Fare+df_titanic$Sex+df_titanic$Sex, family = binomial,data = df_titanic)
 summary(logit_1)
 anova(logit_1)
+
+plot_model(logit_1)
 ```
 
 A continuació, podem observar com la variable de sexe masculí provocava una disminució de la probabilitat de supervivència. Per tant, és una de les variables que més influeix en la supervivència del titànic. 
@@ -397,6 +402,8 @@ En el següent, cas aplicarem una minimització del valor AIC per tal de veure l
 logit_1 <- glm(Survived~., family = binomial,data = df_titanic)
 summary(logit_1)
 logit_2 <- stepAIC(logit_1)
+
+plot_model(logit_1)
 ```
 
 En aquest anàlisis es pot observar com les variables més rellevants és el sexe (Z<-13,15). Això ens indica que es van complir els procediments típics del codi mariner, on en aquella època tenien prioritat el sexe femení en cas d'abordatge. També tenies menys probabilitats de sobreviure si eres de tercera classe o segona. Altres variables rellevants són els diferents grups d'edat. Els menors de 20 anys i majors de 70 van tenir més possibilitats de supervivència.
